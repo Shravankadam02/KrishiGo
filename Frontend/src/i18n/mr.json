@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "home": "मुख्यपृष्ठ",
+    "explore": "शोधा",
+    "bookings": "बुकिंग",
+    "profile": "प्रोफाइल",
+    "listings": "यादी",
+    "requests": "विनंत्या",
+    "earnings": "कमाई",
+    "login": "लॉगिन",
+    "register": "नोंदणी"
+  },
+  "landing": {
+    "hero_title": "शेती उपकरणे सहज भाड्याने घ्या",
+    "hero_subtitle": "तुमच्या गावाजवळील विश्वासू उपकरण मालकांशी जोडा. ट्रॅक्टर, हार्वेस्टर, फवारणी यंत्र आणि बरेच काही बुक करा.",
+    "cta_rent": "उपकरण शोधा",
+    "cta_list": "उपकरण नोंदवा",
+    "how_title": "KrishiGo कसे काम करते",
+    "step1_title": "जवळचे शोधा",
+    "step1_desc": "तुमच्या गावापासून २० किमी आत सत्यापित उपकरणे शोधा",
+    "step2_title": "लगेच बुक करा",
+    "step2_desc": "तारीख, जमीन आकार निवडा आणि बुकिंग निश्चित करा",
+    "step3_title": "काम पूर्ण करा",
+    "step3_desc": "मालक वेळेवर येतो, सेवा पूर्ण होते, नंतर पैसे द्या"
+  },
+  "auth": {
+    "enter_phone": "तुमचा मोबाइल नंबर टाका",
+    "phone_placeholder": "१०-अंकी मोबाइल नंबर",
+    "send_otp": "OTP पाठवा",
+    "enter_otp": "OTP टाका",
+    "otp_sent": "OTP पाठवला",
+    "verify_otp": "OTP सत्यापित करा",
+    "resend_otp": "OTP पुन्हा पाठवा",
+    "select_role": "मला करायचे आहे",
+    "role_farmer": "उपकरण भाड्याने घ्या",
+    "role_owner": "माझे उपकरण नोंदवा",
+    "complete_profile": "प्रोफाइल पूर्ण करा",
+    "name": "पूर्ण नाव",
+    "village": "गाव",
+    "taluka": "तालुका",
+    "land_size": "जमीन आकार"
+  },
+  "equipment": {
+    "search_placeholder": "तुम्हाला कोणते उपकरण हवे आहे?",
+    "filter": "फिल्टर",
+    "sort": "क्रमवारी",
+    "per_acre": "प्रति एकर",
+    "km_away": "किमी दूर",
+    "book_now": "आता बुक करा",
+    "available": "उपलब्ध",
+    "not_available": "अनुपलब्ध"
+  },
+  "booking": {
+    "select_date": "सेवा तारीख निवडा",
+    "land_size": "जमीन आकार",
+    "total_price": "एकूण किंमत",
+    "commission": "प्लॅटफॉर्म शुल्क",
+    "confirm_booking": "बुकिंग निश्चित करा",
+    "pay_cash": "रोख द्या",
+    "pay_online": "ऑनलाइन द्या",
+    "advance_required": "आगाऊ रक्कम आवश्यक"
+  }
+}

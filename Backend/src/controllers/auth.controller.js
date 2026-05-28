@@ -68,7 +68,12 @@ export const verifyOtp = async (req, res) => {
 
         if (isNewUser) {
             // Create minimal user — profile completion happens next
-            user = await User.create({ phone, name: 'new user', role: 'farmer', isProfileComplete: false })
+            user = await User.create({
+                phone,
+                name: req.body.name?.trim() || 'User',
+                role: 'farmer',
+                isProfileComplete: false
+            })
         }
 
         const token = generateToken(user._id)

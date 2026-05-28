@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "bookings": "Bookings",
+    "profile": "Profile",
+    "listings": "Listings",
+    "requests": "Requests",
+    "earnings": "Earnings",
+    "login": "Login",
+    "register": "Register"
+  },
+  "landing": {
+    "hero_title": "Rent Farm Equipment Easily",
+    "hero_subtitle": "Connect with trusted equipment owners near your village. Book tractors, harvesters, sprayers and more.",
+    "cta_rent": "Find Equipment",
+    "cta_list": "List Your Equipment",
+    "how_title": "How KrishiGo Works",
+    "step1_title": "Search Nearby",
+    "step1_desc": "Find verified equipment within 20km of your village",
+    "step2_title": "Book Instantly",
+    "step2_desc": "Select date, land size and confirm your booking",
+    "step3_title": "Get Work Done",
+    "step3_desc": "Owner arrives on time, service completed, pay after"
+  },
+  "auth": {
+    "enter_phone": "Enter your mobile number",
+    "phone_placeholder": "10-digit mobile number",
+    "send_otp": "Send OTP",
+    "enter_otp": "Enter OTP",
+    "otp_sent": "OTP sent to",
+    "verify_otp": "Verify OTP",
+    "resend_otp": "Resend OTP",
+    "select_role": "I want to",
+    "role_farmer": "Rent Equipment",
+    "role_owner": "List My Equipment",
+    "complete_profile": "Complete Your Profile",
+    "name": "Full Name",
+    "village": "Village",
+    "taluka": "Taluka",
+    "land_size": "Land Size"
+  },
+  "equipment": {
+    "search_placeholder": "What equipment do you need?",
+    "filter": "Filter",
+    "sort": "Sort",
+    "per_acre": "per acre",
+    "km_away": "km away",
+    "book_now": "Book Now",
+    "available": "Available",
+    "not_available": "Not Available"
+  },
+  "booking": {
+    "select_date": "Select Service Date",
+    "land_size": "Land Size",
+    "total_price": "Total Price",
+    "commission": "Platform Fee",
+    "confirm_booking": "Confirm Booking",
+    "pay_cash": "Pay Cash",
+    "pay_online": "Pay Online",
+    "advance_required": "Advance Required"
+  }
+}
