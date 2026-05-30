@@ -1,74 +1,130 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import useAuthStore from './store/authStore'
+import { useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+import useAuthStore from "./store/authStore";
 
 // Auth pages
-import Landing from './pages/Landing'
-import Login from './pages/auth/Login'
-import VerifyOtp from './pages/auth/VerifyOtp'
-import RoleSelect from './pages/auth/RoleSelect'
-import CompleteProfile from './pages/auth/CompleteProfile'
+import Landing from "./pages/Landing";
+import Login from "./pages/auth/Login";
+import VerifyOtp from "./pages/auth/VerifyOtp";
+import RoleSelect from "./pages/auth/RoleSelect";
+import CompleteProfile from "./pages/auth/CompleteProfile";
 
-// Placeholder pages — we'll build these next
-const FarmerHome = () => <div>Farmer Home</div>
-const OwnerHome = () => <div>Owner Home</div>
-const AdminHome = () => <div>Admin Home</div>
+// Farmer pages
+import FarmerHome from "./pages/farmer/Home";
+import FarmerExplore from "./pages/farmer/Explore";
+import FarmerBookings from "./pages/farmer/Bookings";
+import FarmerProfile from "./pages/farmer/Profile";
+import EquipmentDetail from "./pages/farmer/EquipmentDetail";
+import FarmerBooking from "./pages/farmer/Booking";
+import BookingDetail from "./pages/farmer/BookingDetail";
+
+//owner pages
+import OwnerHome from "./pages/owner/Home";
+import OwnerRequests from "./pages/owner/Requests";
+import OwnerListings from "./pages/owner/Listings";
+import OwnerEarnings from "./pages/owner/Earnings";
+import OwnerProfile from "./pages/owner/Profile";
+import AddEquipment from "./pages/owner/AddEquipment";
+
+// Placeholder pages
+const AdminHome = () => <div>Admin Home</div>;
 
 // Protected route
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, user } = useAuthStore()
-
-  if (!isAuthenticated) return <Navigate to='/login' replace />
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
-    return <Navigate to='/' replace />
+    return <Navigate to="/" replace />;
   }
-  return children
-}
+  return children;
+};
 
-// Role based redirect after login
+// Role based redirect
 const RoleRedirect = () => {
-  const { user } = useAuthStore()
-  if (user?.role === 'farmer') return <Navigate to='/farmer/home' replace />
-  if (user?.role === 'owner') return <Navigate to='/owner/home' replace />
-  if (user?.role === 'admin') return <Navigate to='/admin/dashboard' replace />
-  return <Navigate to='/role-select' replace />
-}
+  const { user } = useAuthStore();
+  if (user?.role === "farmer") return <Navigate to="/farmer/home" replace />;
+  if (user?.role === "owner") return <Navigate to="/owner/home" replace />;
+  if (user?.role === "admin") return <Navigate to="/admin/dashboard" replace />;
+  return <Navigate to="/role-select" replace />;
+};
 
+// App
 export default function App() {
+  const { isAuthenticated, getMe, logout } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getMe().then((user) => {
+        if (!user) logout();
+      });
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path='/' element={<Landing />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/verify-otp' element={<VerifyOtp />} />
-        <Route path='/role-select' element={<RoleSelect />} />
-        <Route path='/complete-profile' element={<CompleteProfile />} />
-        <Route path='/dashboard' element={<RoleRedirect />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
+        <Route path="/role-select" element={<RoleSelect />} />
+        <Route path="/complete-profile" element={<CompleteProfile />} />
+        <Route path="/dashboard" element={<RoleRedirect />} />
 
         {/* Farmer */}
-        <Route path='/farmer/*' element={
-          <ProtectedRoute allowedRoles={['farmer']}>
-            <FarmerHome />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/farmer"
+          element={
+            <ProtectedRoute allowedRoles={["farmer"]}>
+              <Outlet />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="home" element={<FarmerHome />} />
+          <Route path="explore" element={<FarmerExplore />} />
+          <Route path="bookings" element={<FarmerBookings />} />
+          <Route path="profile" element={<FarmerProfile />} />
+          <Route path="equipment/:id" element={<EquipmentDetail />} />
+          <Route path="booking/:id" element={<FarmerBooking />} />
+          <Route path="booking-detail/:id" element={<BookingDetail />} />
+        </Route>
 
         {/* Owner */}
-        <Route path='/owner/*' element={
-          <ProtectedRoute allowedRoles={['owner']}>
-            <OwnerHome />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/owner"
+          element={
+            <ProtectedRoute allowedRoles={["owner"]}>
+              <Outlet />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="home" element={<OwnerHome />} />
+          <Route path="requests" element={<OwnerRequests />} />
+          <Route path="listings" element={<OwnerListings />} />
+          <Route path="earnings" element={<OwnerEarnings />} />
+          <Route path="profile" element={<OwnerProfile />} />
+          <Route path="add-equipment" element={<AddEquipment />} />
+        </Route>
 
         {/* Admin */}
-        <Route path='/admin/*' element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminHome />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminHome />
+            </ProtectedRoute>
+          }
+        />
 
         {/* 404 */}
-        <Route path='*' element={<Navigate to='/' replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }

@@ -9,10 +9,20 @@ import logo from "../../assets/logo.png";
 export default function RoleSelect() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const handleContinue = () => {
+    if (!name.trim()) {
+      setNameError("Please enter your full name");
+      return;
+    }
     if (!selected) return;
-    useAuthStore.getState().updateUser({ role: selected });
+
+    useAuthStore.getState().updateUser({
+      name: name.trim(),
+      role: selected,
+    });
     navigate("/complete-profile");
   };
 
@@ -38,6 +48,28 @@ export default function RoleSelect() {
           <p className="text-neutral-500 text-sm">
             Choose your role to get started
           </p>
+        </div>
+
+        {/* Name field */}
+        <div className="bg-white rounded-3xl p-6 border-2 border-neutral-100 mb-2">
+          <label className="text-sm font-semibold text-neutral-600 mb-2 block">
+            Your Full Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setNameError("");
+            }}
+            placeholder="Enter your full name"
+            className={`w-full px-4 py-3.5 rounded-2xl border-2 bg-[#F7F5F0]
+      text-neutral-900 focus:outline-none transition-colors
+      ${nameError ? "border-red-400" : "border-neutral-200 focus:border-[#2D6A4F]"}`}
+          />
+          {nameError && (
+            <p className="text-red-500 text-xs mt-1">{nameError}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-4 mb-6">

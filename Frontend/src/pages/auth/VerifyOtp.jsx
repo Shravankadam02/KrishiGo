@@ -46,9 +46,9 @@ export default function VerifyOtp() {
     }
 
     // Auto submit when all filled
-    {/*if (newOtp.every((d) => d !== "") && value) {
+    if (newOtp.every((d) => d !== "") && value) {
       handleVerify(newOtp.join(""));
-    }*/}
+    }
   };
 
   const handleKeyDown = (index, e) => {
@@ -57,27 +57,19 @@ export default function VerifyOtp() {
     }
   };
 
-  const handleVerify = async (otpString) => {
-    const otpValue = otpString || otp.join("");
-    if (otpValue.length !== 6) return;
+  const handleVerify = async () => {
+  const otpValue = otp.join('')
+  if (otpValue.length !== 6) return
 
-    // Validate name
-    if (!name.trim()) {
-      setNameError("Please enter your full name");
-      return;
+  const result = await verifyOtp(phone, otpValue)
+  if (result.success) {
+    if (result.isNewUser || !result.user?.isProfileComplete) {
+      navigate('/role-select')  // new user
+    } else {
+      navigate('/dashboard')    // existing user
     }
-
-    const result = await verifyOtp(phone, otpValue);
-    if (result.success) {
-      // Update name in store
-      useAuthStore.getState().updateUser({ name: name.trim() });
-      if (result.isNewUser || !result.user?.isProfileComplete) {
-        navigate("/role-select");
-      } else {
-        navigate("/dashboard");
-      }
-    }
-  };
+  }
+}
 
   const handleResend = async () => {
     setOtp(["", "", "", "", "", ""]);
@@ -148,32 +140,6 @@ export default function VerifyOtp() {
           {error && (
             <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
           )}
-
-          {/* Name input */}
-          <div className="mb-2">
-            <label className="text-sm font-semibold text-neutral-600 mb-2 block">
-              Your Full Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setNameError("");
-              }}
-              placeholder="Enter your full name"
-              className={`w-full px-4 py-3.5 rounded-2xl border-2 bg-[#F7F5F0]
-      text-neutral-900 focus:outline-none transition-colors
-      ${
-        nameError
-          ? "border-red-400"
-          : "border-neutral-200 focus:border-[#2D6A4F]"
-      }`}
-            />
-            {nameError && (
-              <p className="text-red-500 text-xs mt-1">{nameError}</p>
-            )}
-          </div>
 
           {/* Verify button */}
           <motion.button
