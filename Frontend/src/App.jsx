@@ -32,6 +32,13 @@ import OwnerEarnings from "./pages/owner/Earnings";
 import OwnerProfile from "./pages/owner/Profile";
 import AddEquipment from "./pages/owner/AddEquipment";
 
+// Admin pages
+import AdminDashboard from "./pages/admin/Dashboard";
+import KycQueue from "./pages/admin/KycQueue";
+import EquipmentQueue from "./pages/admin/EquipmentQueue";
+import AdminUsers from "./pages/admin/Users";
+import AdminDisputes from "./pages/admin/Disputes";
+
 // Placeholder pages
 const AdminHome = () => <div>Admin Home</div>;
 
@@ -114,13 +121,19 @@ export default function App() {
 
         {/* Admin */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminHome />
+              <Outlet />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="kyc" element={<KycQueue />} />
+          <Route path="equipment" element={<EquipmentQueue />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="disputes" element={<AdminDisputes />} />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />

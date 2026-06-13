@@ -56,6 +56,11 @@ const bookingSchema = new mongoose.Schema({
     default: 'pending'
   },
   paymentConfirmedAt: Date,
+  paymentMethod: {
+  type: String,
+  enum: ['cash', 'online'],
+  default: 'cash'
+},
   farmerRating: {
     equipmentQuality: Number,
     operatorBehavior: Number,

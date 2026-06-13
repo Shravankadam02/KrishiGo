@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { HiHome, HiSearch, HiClipboardList, HiUser } from 'react-icons/hi'
 import useAuthStore from '../../store/authStore'
+import { FaTractor } from 'react-icons/fa'
 
 const farmerTabs = [
   { path: '/farmer/home',     icon: HiHome,          label: 'Home' },
@@ -12,9 +13,10 @@ const farmerTabs = [
 
 const ownerTabs = [
   { path: '/owner/home',      icon: HiHome,          label: 'Home' },
-  { path: '/owner/listings',  icon: HiClipboardList, label: 'Listings' },
-  { path: '/owner/requests',  icon: HiSearch,        label: 'Requests' },
-  { path: '/owner/earnings',  icon: HiUser,          label: 'Earnings' },
+  { path: '/owner/listings',  icon: FaTractor,       label: 'Listings' },
+  { path: '/owner/requests',  icon: HiClipboardList, label: 'Requests' },
+  { path: '/owner/earnings',  icon: HiSearch,        label: 'Earnings' },
+  { path: '/owner/profile',   icon: HiUser,          label: 'Profile' },
 ]
 
 export default function BottomNav() {

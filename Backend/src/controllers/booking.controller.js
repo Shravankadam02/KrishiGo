@@ -13,7 +13,7 @@ import {
 // POST /api/bookings — farmer creates booking
 export const createBooking = async (req, res) => {
   try {
-    const { equipmentId, serviceDate, landSize, landUnit } = req.body
+    const { equipmentId, serviceDate, landSize, landUnit, paymentMethod } = req.body
 
     if (!equipmentId || !serviceDate || !landSize) {
       return res.status(400).json({
@@ -94,7 +94,8 @@ export const createBooking = async (req, res) => {
         reason: advance.reason,
         collected: false
       },
-      status: 'pending'
+      status: 'pending',
+      paymentMethod: paymentMethod || 'cash'
     })
 
     await booking.populate([
