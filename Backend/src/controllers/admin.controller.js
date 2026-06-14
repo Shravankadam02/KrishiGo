@@ -30,7 +30,7 @@ export const getDashboard = async (req, res) => {
         createdAt: {
           $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
         }
-      }).select('totalPrice status')
+      }).select('totalPrice status commission')
     ])
 
     // Weekly GMV
@@ -41,7 +41,7 @@ export const getDashboard = async (req, res) => {
     // Weekly commission earned
     const weeklyCommission = weeklyBookings
       .filter(b => b.status === 'completed')
-      .reduce((sum, b) => sum + (b.totalPrice * 0.1), 0)
+      .reduce((sum, b) => sum + (b.commission || 0), 0)
 
     res.json({
       success: true,

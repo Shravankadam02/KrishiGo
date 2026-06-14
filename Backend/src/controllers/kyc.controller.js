@@ -70,7 +70,7 @@ export const submitKYC = async (req, res) => {
 export const getKYCStatus = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
-      .select('kyc aadhaarUrl panUrl bankAccount name phone')
+      .select('kyc aadhaarUrl panUrl bankAccount name phone isProfileComplete')
 
     // Build step tracker
     const steps = [

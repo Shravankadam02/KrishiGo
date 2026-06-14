@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import razorpay from '../config/razorpay.js'
 import Booking from '../models/Booking.js'
+import User from '../models/User.js'
 
 // POST /api/payments/create-order
 // Called when farmer wants to pay advance or full amount
@@ -132,13 +133,21 @@ export const verifyPayment = async (req, res) => {
       })
     }
 
-    if (paymentType === 'full') {
+    if (paymentType === 'full' || paymentType === 'remaining') {
       await Booking.findByIdAndUpdate(bookingId, {
         paymentStatus: 'collected',
         paymentConfirmedAt: new Date(),
         status: 'completed',
         'payment.razorpayOrderId': razorpay_order_id,
         'payment.razorpayPaymentId': razorpay_payment_id
+      })
+
+      // Update user stats
+      await User.findByIdAndUpdate(booking.farmer, {
+        $inc: { totalBookings: 1, completedBookings: 1 }
+      })
+      await User.findByIdAndUpdate(booking.owner, {
+        $inc: { totalBookings: 1, completedBookings: 1 }
       })
 
       return res.json({
@@ -191,7 +200,7 @@ export const handleWebhook = async (req, res) => {
 export const getPaymentStatus = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.bookingId)
-      .select('totalPrice paymentStatus advance status')
+      .select('totalPrice paymentStatus advance status farmer')
 
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' })

@@ -24,7 +24,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
+        sans: ['Outfit', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
         devanagari: ['Tiro Devanagari', 'serif'],
       }
     },
