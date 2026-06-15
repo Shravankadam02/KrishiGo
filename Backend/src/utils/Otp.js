@@ -1,6 +1,6 @@
 // Phase 1: Mock OTP — replace with MSG91 in production
 export const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString()
+  return "123456" // Hardcoded for demo MVP
 }
 
 export const sendOTP = async (phone, otp) => {
