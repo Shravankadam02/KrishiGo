@@ -1,6 +1,6 @@
 import User from '../models/User.js'
 import Otp from '../models/Otp.js'
-import { generateOTP, sendOTP } from '../utils/otp.js'
+import { generateOTP, sendOTP } from '../utils/Otp.js'
 import { generateToken } from '../utils/jwt.js'
 
 // POST /api/auth/send-otp
