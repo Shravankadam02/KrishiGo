@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { MdDashboard, MdVerifiedUser, MdAgriculture, MdPeople, MdGavel } from 'react-icons/md'
+import Sidebar from './Sidebar'
 
 const tabs = [
   { path: '/admin/dashboard',  Icon: MdDashboard,    label: 'Dashboard' },
@@ -14,13 +15,14 @@ export default function AdminLayout({ children }) {
   const location = useLocation()
 
   return (
-    <div className='min-h-screen bg-[#F7F5F0]' style={{ fontFamily: "'Outfit', sans-serif" }}>
-      <div className='pb-20'>
+    <div className='min-h-screen bg-[#F7F5F0] md:pl-64' style={{ fontFamily: "'Outfit', sans-serif" }}>
+      <Sidebar />
+      <div className='pb-20 md:pb-0'>
         {children}
       </div>
 
       {/* Bottom nav */}
-      <div className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-100'>
+      <div className='md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-100'>
         <div className='flex items-stretch'>
           {tabs.map((tab) => {
             const isActive = location.pathname === tab.path

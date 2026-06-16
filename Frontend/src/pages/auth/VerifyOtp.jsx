@@ -118,7 +118,7 @@ export default function VerifyOtp() {
           </div>
 
           {/* OTP inputs */}
-          <div className="flex gap-3 justify-between mb-6">
+          <div className="flex gap-2 sm:gap-3 justify-between mb-6">
             {otp.map((digit, i) => (
               <input
                 key={i}
@@ -128,7 +128,7 @@ export default function VerifyOtp() {
                 value={digit}
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
-                className={`w-12 h-14 text-center text-xl font-black rounded-2xl border-2
+                className={`w-10 sm:w-12 h-12 sm:h-14 text-center text-lg sm:text-xl font-black rounded-2xl border-2
                   focus:outline-none transition-all bg-[#F7F5F0]
                   ${digit ? "border-[#2D6A4F] bg-[#2D6A4F]/5 text-[#2D6A4F]" : "border-neutral-200"}
                   ${error ? "border-red-400" : ""}

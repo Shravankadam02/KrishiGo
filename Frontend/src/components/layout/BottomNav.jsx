@@ -1,37 +1,24 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { HiHome, HiSearch, HiClipboardList, HiUser } from 'react-icons/hi'
 import useAuthStore from '../../store/authStore'
-import { FaTractor } from 'react-icons/fa'
-
-const farmerTabs = [
-  { path: '/farmer/home',     icon: HiHome,          label: 'Home' },
-  { path: '/farmer/explore',  icon: HiSearch,        label: 'Explore' },
-  { path: '/farmer/bookings', icon: HiClipboardList, label: 'Bookings' },
-  { path: '/farmer/profile',  icon: HiUser,          label: 'Profile' },
-]
-
-const ownerTabs = [
-  { path: '/owner/home',      icon: HiHome,          label: 'Home' },
-  { path: '/owner/listings',  icon: FaTractor,       label: 'Listings' },
-  { path: '/owner/requests',  icon: HiClipboardList, label: 'Requests' },
-  { path: '/owner/earnings',  icon: HiSearch,        label: 'Earnings' },
-  { path: '/owner/profile',   icon: HiUser,          label: 'Profile' },
-]
+import { farmerTabs, ownerTabs, adminTabs } from '../../utils/navigation'
 
 export default function BottomNav() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuthStore()
 
-  const tabs = user?.role === 'owner' ? ownerTabs : farmerTabs
+  const tabs = user?.role === 'admin' 
+    ? adminTabs 
+    : user?.role === 'owner' 
+      ? ownerTabs 
+      : farmerTabs
 
   return (
-    <div className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-100 px-2 pb-safe'
+    <div className='md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-100 px-2 pb-safe'
       style={{ fontFamily: "'Outfit', sans-serif" }}>
       <div className='flex items-center justify-around max-w-lg mx-auto'>
         {tabs.map((tab) => {
-          const isActive = location.pathname === tab.path
+          const isActive = location.pathname.startsWith(tab.path)
           return (
             <button
               key={tab.path}
