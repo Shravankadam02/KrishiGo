@@ -42,6 +42,9 @@ import AdminDisputes from "./pages/admin/Disputes";
 // Placeholder pages
 const AdminHome = () => <div>Admin Home</div>;
 
+// Error pages
+import NotFound from "./pages/NotFound";
+
 // Protected route
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -136,7 +139,7 @@ export default function App() {
         </Route>
 
         {/* 404 */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
