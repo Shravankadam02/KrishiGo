@@ -392,7 +392,7 @@ export default function Landing() {
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/explore")}
                   className="flex items-center gap-2 px-7 py-4 bg-[#E76F51] text-white font-bold rounded-2xl text-base hover:bg-[#F4A261] transition-all shadow-xl"
                 >
                   <FaTractor size={20} />
@@ -495,8 +495,8 @@ export default function Landing() {
                     y: -6,
                     scale: 1.03,
                     boxShadow: "0 12px 40px rgba(45,106,79,0.15)",
-                  }}
-                  onClick={() => navigate("/login")}
+                      }}
+                      onClick={() => navigate(`/explore?type=${cat.key}`)}
                   className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#F7F5F0] hover:bg-[#2D6A4F] cursor-pointer transition-all group border-2 border-transparent hover:border-[#2D6A4F]"
                 >
                   <cat.Icon

@@ -15,6 +15,10 @@ import VerifyOtp from "./pages/auth/VerifyOtp";
 import RoleSelect from "./pages/auth/RoleSelect";
 import CompleteProfile from "./pages/auth/CompleteProfile";
 
+
+import PublicExplore from './pages/Explore'
+import EquipmentDetailPublic from './pages/EquipmentDetailPublic'
+
 // Farmer pages
 import FarmerHome from "./pages/farmer/Home";
 import FarmerExplore from "./pages/farmer/Explore";
@@ -86,7 +90,10 @@ export default function App() {
         <Route path="/role-select" element={<RoleSelect />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />
         <Route path="/dashboard" element={<RoleRedirect />} />
-
+        
+// Add inside Routes — before farmer routes
+<Route path='/explore' element={<PublicExplore />} />
+<Route path='/equipment/:id' element={<EquipmentDetailPublic />} />
         {/* Farmer */}
         <Route
           path="/farmer"

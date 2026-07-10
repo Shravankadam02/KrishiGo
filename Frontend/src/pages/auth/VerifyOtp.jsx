@@ -58,18 +58,25 @@ export default function VerifyOtp() {
   };
 
   const handleVerify = async () => {
-  const otpValue = otp.join('')
-  if (otpValue.length !== 6) return
+    const otpValue = otp.join("");
+    if (otpValue.length !== 6) return;
 
-  const result = await verifyOtp(phone, otpValue)
-  if (result.success) {
-    if (result.isNewUser || !result.user?.isProfileComplete) {
-      navigate('/role-select')  // new user
-    } else {
-      navigate('/dashboard')    // existing user
+    const result = await verifyOtp(phone, otpValue);
+    if (result.success) {
+      if (result.isNewUser || !result.user?.isProfileComplete) {
+        navigate("/role-select");
+      } else {
+        // Check if there's a post-login redirect
+        const redirect = localStorage.getItem("postLoginRedirect");
+        if (redirect) {
+          localStorage.removeItem("postLoginRedirect");
+          navigate(redirect);
+        } else {
+          navigate("/dashboard");
+        }
+      }
     }
-  }
-}
+  };
 
   const handleResend = async () => {
     setOtp(["", "", "", "", "", ""]);
@@ -115,6 +122,13 @@ export default function VerifyOtp() {
               OTP sent to{" "}
               <span className="font-bold text-neutral-700">+91 {phone}</span>
             </p>
+
+            <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-3">
+              <p className="text-sm text-yellow-800">
+                ⚠️ <strong>Testing Only:</strong> Enter <code>123456</code> as
+                the OTP.
+              </p>
+            </div>
           </div>
 
           {/* OTP inputs */}
