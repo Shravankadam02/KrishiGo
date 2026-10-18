@@ -82,6 +82,9 @@ const bookingSchema = new mongoose.Schema({
 
 bookingSchema.index({ farmer: 1, status: 1 })
 bookingSchema.index({ owner: 1, status: 1 })
-bookingSchema.index({ serviceDate: 1 })
+bookingSchema.index({ equipment: 1, serviceDate: 1 }, { 
+  unique: true, 
+  partialFilterExpression: { status: { $in: ['pending','confirmed','in_progress'] } } 
+})
 
 export default mongoose.model('Booking', bookingSchema)

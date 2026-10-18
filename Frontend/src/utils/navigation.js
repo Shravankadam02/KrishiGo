@@ -13,6 +13,7 @@ export const ownerTabs = [
   { path: '/owner/home',      icon: HiHome,          label: 'Home' },
   { path: '/owner/listings',  icon: FaTractor,       label: 'Listings' },
   { path: '/owner/requests',  icon: HiClipboardList, label: 'Requests' },
+  { path: '/owner/kyc',       icon: MdVerifiedUser,  label: 'KYC' },
   { path: '/owner/earnings',  icon: HiSearch,        label: 'Earnings' },
   { path: '/owner/profile',   icon: HiUser,          label: 'Profile' },
 ]

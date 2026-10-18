@@ -170,24 +170,29 @@ export default function KycQueue() {
                     }
                   ]
                     .filter(doc => doc.url)
-                    .map((doc, j) => (
-                      <a
-                        key={j}
-                        href={doc.url}
-                        target='_blank'
-                        rel='noreferrer'
-                        className='flex items-center gap-2 p-2.5 bg-[#F7F5F0] rounded-xl hover:bg-[#2D6A4F]/10 transition-colors'
-                      >
-                        <MdOpenInNew
-                          size={16}
-                          className='text-[#2D6A4F]'
-                        />
+                    .map((doc, j) => {
+                      const href = doc.url.startsWith('http')
+                        ? doc.url
+                        : `https://res.cloudinary.com/dmoi023la/image/upload/${doc.url}`
+                      return (
+                        <a
+                          key={j}
+                          href={href}
+                          target='_blank'
+                          rel='noreferrer'
+                          className='flex items-center gap-2 p-2.5 bg-[#F7F5F0] rounded-xl hover:bg-[#2D6A4F]/10 transition-colors'
+                        >
+                          <MdOpenInNew
+                            size={16}
+                            className='text-[#2D6A4F]'
+                          />
 
-                        <span className='text-xs font-bold text-[#2D6A4F]'>
-                          View {doc.label}
-                        </span>
-                      </a>
-                    ))}
+                          <span className='text-xs font-bold text-[#2D6A4F]'>
+                            View {doc.label}
+                          </span>
+                        </a>
+                      )
+                    })}
                 </div>
 
                 {/* Actions */}

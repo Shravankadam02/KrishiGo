@@ -15,12 +15,16 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    const user = await User.findById(decoded.id).select('-bankAccount.accountNumber')
+    const user = await User.findById(decoded.id).select('-bankAccount.accountNumber -aadhaarUrl -panUrl')
 
     if (!user || !user.isActive) {
       return res.status(401).json({ success: false, message: 'User not found or inactive' })
     }
-    console.log('User from DB:', user.role, user._id)
+    
+    if (user.suspendedUntil && user.suspendedUntil > new Date()) {
+      return res.status(403).json({ success: false, message: `Account suspended until ${user.suspendedUntil.toISOString()}` })
+    }
+
     req.user = user
     next()
   } catch (error) {

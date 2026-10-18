@@ -88,19 +88,43 @@ export default function OwnerHome() {
         {/* KYC status */}
         <div className='relative mb-4'>
           {user?.kyc?.status === 'approved' ? (
-            <div className='flex items-center gap-1'>
-              <MdVerified size={13} className='text-[#95D5B2]' />
-              <span className='text-white/60 text-xs'>
+            <div
+              className='flex items-center gap-1 cursor-pointer hover:opacity-90'
+              onClick={() => navigate('/owner/kyc')}
+              title='View KYC Details'
+            >
+              <MdVerified size={14} className='text-[#95D5B2]' />
+              <span className='text-white/80 text-xs font-semibold'>
                 {lang === 'en' ? 'KYC Verified' : 'KYC सत्यापित'}
+              </span>
+            </div>
+          ) : user?.kyc?.status === 'pending' ? (
+            <div
+              className='flex items-center gap-1.5 cursor-pointer bg-white/10 px-2.5 py-1 rounded-xl w-fit hover:bg-white/15 transition-colors'
+              onClick={() => navigate('/owner/kyc')}
+            >
+              <MdWarning size={14} className='text-amber-300 animate-pulse' />
+              <span className='text-amber-200 text-xs font-semibold'>
+                {lang === 'en' ? 'KYC Under Review' : 'KYC तपासणी सुरू आहे'}
+              </span>
+            </div>
+          ) : user?.kyc?.status === 'rejected' ? (
+            <div
+              className='flex items-center gap-1.5 cursor-pointer bg-red-500/20 px-2.5 py-1 rounded-xl w-fit hover:bg-red-500/30 transition-colors'
+              onClick={() => navigate('/owner/kyc')}
+            >
+              <MdWarning size={14} className='text-red-300' />
+              <span className='text-red-200 text-xs font-semibold'>
+                {lang === 'en' ? 'KYC Rejected · Tap to Resubmit' : 'KYC नाकारले · पुन्हा सबमिट करा'}
               </span>
             </div>
           ) : (
             <div
-              className='flex items-center gap-1 cursor-pointer'
+              className='flex items-center gap-1.5 cursor-pointer bg-white/10 px-2.5 py-1 rounded-xl w-fit hover:bg-white/15 transition-colors'
               onClick={() => navigate('/owner/kyc')}
             >
-              <MdWarning size={13} className='text-amber-400' />
-              <span className='text-amber-400 text-xs font-semibold'>
+              <MdWarning size={14} className='text-amber-400' />
+              <span className='text-amber-300 text-xs font-semibold'>
                 {lang === 'en' ? 'Complete KYC to list equipment' : 'KYC पूर्ण करा'}
               </span>
             </div>

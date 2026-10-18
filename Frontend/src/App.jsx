@@ -14,6 +14,7 @@ import Login from "./pages/auth/Login";
 import VerifyOtp from "./pages/auth/VerifyOtp";
 import RoleSelect from "./pages/auth/RoleSelect";
 import CompleteProfile from "./pages/auth/CompleteProfile";
+import AdminLogin from "./pages/auth/AdminLogin";
 
 
 import PublicExplore from './pages/Explore'
@@ -35,6 +36,7 @@ import OwnerListings from "./pages/owner/Listings";
 import OwnerEarnings from "./pages/owner/Earnings";
 import OwnerProfile from "./pages/owner/Profile";
 import AddEquipment from "./pages/owner/AddEquipment";
+import OwnerKyc from "./pages/owner/Kyc";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -68,6 +70,15 @@ const RoleRedirect = () => {
   return <Navigate to="/role-select" replace />;
 };
 
+// KYC redirect
+const KycRedirect = () => {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role === "owner") return <Navigate to="/owner/kyc" replace />;
+  if (user?.role === "admin") return <Navigate to="/admin/kyc" replace />;
+  return <Navigate to="/" replace />;
+};
+
 // App
 export default function App() {
   const { isAuthenticated, getMe, logout } = useAuthStore();
@@ -82,18 +93,25 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {import.meta.env.VITE_DEMO_MODE === "true" && (
+        <div className="bg-yellow-500 text-black text-center text-xs py-1 font-bold z-50 relative">
+          Demo mode: don't upload real Aadhaar, PAN or bank details.
+        </div>
+      )}
       <Routes>
         {/* Public */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/role-select" element={<RoleSelect />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />
         <Route path="/dashboard" element={<RoleRedirect />} />
+        <Route path="/kyc" element={<KycRedirect />} />
         
-// Add inside Routes — before farmer routes
-<Route path='/explore' element={<PublicExplore />} />
-<Route path='/equipment/:id' element={<EquipmentDetailPublic />} />
+        {/* Public explore */}
+        <Route path='/explore' element={<PublicExplore />} />
+        <Route path='/equipment/:id' element={<EquipmentDetailPublic />} />
         {/* Farmer */}
         <Route
           path="/farmer"
@@ -127,6 +145,7 @@ export default function App() {
           <Route path="earnings" element={<OwnerEarnings />} />
           <Route path="profile" element={<OwnerProfile />} />
           <Route path="add-equipment" element={<AddEquipment />} />
+          <Route path="kyc" element={<OwnerKyc />} />
         </Route>
 
         {/* Admin */}

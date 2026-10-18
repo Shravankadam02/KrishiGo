@@ -36,6 +36,11 @@ export default function Sidebar() {
             >
               <tab.icon size={22} className={isActive ? 'text-[#2D6A4F]' : 'text-neutral-400'} />
               <span>{tab.label}</span>
+              {tab.path === '/owner/kyc' && user?.role === 'owner' && user?.kyc?.status !== 'approved' && (
+                <span className='ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700'>
+                  {user?.kyc?.status === 'pending' ? 'Review' : 'Required'}
+                </span>
+              )}
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#2D6A4F] rounded-r-full" />
               )}

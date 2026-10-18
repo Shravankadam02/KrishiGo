@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { HiArrowLeft, HiPlus } from 'react-icons/hi'
-import { MdLocationOn, MdCloudUpload, MdArrowForward } from 'react-icons/md'
+import { MdLocationOn, MdCloudUpload, MdArrowForward, MdWarning } from 'react-icons/md'
 import { FaTractor } from 'react-icons/fa'
 import OwnerLayout from '../../components/layout/OwnerLayout'
 import useAuthStore from '../../store/authStore'
@@ -204,6 +204,36 @@ export default function AddEquipment() {
       </div>
 
       <div className='px-4 py-5 flex flex-col gap-4'>
+        {/* KYC notice if not approved */}
+        {user?.kyc?.status !== 'approved' && (
+          <div className='bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3'>
+            <div className='flex items-start gap-3'>
+              <div className='w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5'>
+                <MdWarning size={20} className='text-amber-600' />
+              </div>
+              <div>
+                <p className='font-bold text-neutral-800 text-sm'>
+                  {lang === 'en' ? 'KYC Verification Required' : 'KYC पडताळणी आवश्यक'}
+                </p>
+                <p className='text-xs text-neutral-500 mt-0.5'>
+                  {user?.kyc?.status === 'pending'
+                    ? (lang === 'en' ? 'Your KYC is currently under review by admin.' : 'तुमचे KYC प्रशासकाद्वारे तपासणीत आहे.')
+                    : (lang === 'en' ? 'Complete KYC to activate machine listings for farmers.' : 'शेतकऱ्यांसाठी उपकरणे उपलब्ध करण्यासाठी आधी KYC पूर्ण करा.')}
+                </p>
+              </div>
+            </div>
+            <button
+              type='button'
+              onClick={() => navigate('/owner/kyc')}
+              className='px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shrink-0 transition-colors'
+            >
+              {user?.kyc?.status === 'pending'
+                ? (lang === 'en' ? 'Check Status' : 'स्थिती तपासा')
+                : (lang === 'en' ? 'Complete KYC' : 'KYC पूर्ण करा')}
+            </button>
+          </div>
+        )}
+
         <AnimatePresence mode='wait'>
 
           {/* Step 0 — Type */}
@@ -565,8 +595,17 @@ export default function AddEquipment() {
 
         {/* Error */}
         {error && (
-          <div className='bg-red-50 border border-red-200 rounded-2xl px-4 py-3'>
+          <div className='bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col gap-2'>
             <p className='text-red-600 text-sm font-semibold'>{error}</p>
+            {error.toLowerCase().includes('kyc') && (
+              <button
+                type='button'
+                onClick={() => navigate('/owner/kyc')}
+                className='self-start px-4 py-2 bg-[#2D6A4F] text-white text-xs font-bold rounded-xl hover:bg-[#1B4332] transition-colors mt-1 shadow-sm'
+              >
+                {lang === 'en' ? 'Complete KYC Verification Now' : 'आता KYC पडताळणी पूर्ण करा'}
+              </button>
+            )}
           </div>
         )}
 

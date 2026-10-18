@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { HiArrowLeft, HiPlus } from 'react-icons/hi'
-import { MdCheck, MdSchedule, MdClose } from 'react-icons/md'
+import { MdCheck, MdSchedule, MdClose, MdWarning } from 'react-icons/md'
 import { FaTractor } from 'react-icons/fa'
 import OwnerLayout from '../../components/layout/OwnerLayout'
+import useAuthStore from '../../store/authStore'
 import api from '../../services/api'
 import { formatPrice } from '../../utils/helpers'
 
@@ -17,6 +18,7 @@ const statusConfig = {
 
 export default function OwnerListings() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const lang = localStorage.getItem('language') || 'en'
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,7 +64,33 @@ export default function OwnerListings() {
         </div>
       </div>
 
-      <div className='px-4 py-4'>
+      <div className='px-4 py-4 flex flex-col gap-3'>
+        {/* KYC Alert if not approved */}
+        {user?.kyc?.status !== 'approved' && (
+          <div className='bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm'>
+            <div className='flex items-center gap-3'>
+              <div className='w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0'>
+                <MdWarning size={18} />
+              </div>
+              <div>
+                <p className='text-xs font-bold text-neutral-800'>
+                  {lang === 'en' ? 'KYC Verification Required' : 'KYC पडताळणी आवश्यक'}
+                </p>
+                <p className='text-[11px] text-neutral-500'>
+                  {user?.kyc?.status === 'pending'
+                    ? (lang === 'en' ? 'KYC under review. Listings will activate once approved.' : 'KYC तपासणीत आहे. मंजुरीनंतर यादी सक्रिय होईल.')
+                    : (lang === 'en' ? 'Complete KYC to list machinery and accept bookings.' : 'उपकरणे नोंदवण्यासाठी KYC पूर्ण करा.')}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/owner/kyc')}
+              className='px-3 py-1.5 bg-[#2D6A4F] text-white text-xs font-bold rounded-xl shrink-0 hover:bg-[#1B4332] transition-colors'
+            >
+              {lang === 'en' ? 'View KYC' : 'KYC पहा'}
+            </button>
+          </div>
+        )}
         {loading && (
           <div className='flex flex-col gap-3'>
             {[1, 2, 3].map(i => (

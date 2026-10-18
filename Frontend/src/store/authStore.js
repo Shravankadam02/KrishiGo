@@ -20,7 +20,7 @@ const useAuthStore = create(
         try {
           const { data } = await api.post('/api/auth/send-otp', { phone })
           set({ isLoading: false })
-          return { success: true, message: data.message }
+          return { success: true, message: data.message, demoMode: data.demoMode }
         } catch (error) {
           const message = error.response?.data?.message || 'Failed to send OTP'
           set({ isLoading: false, error: message })
@@ -42,6 +42,25 @@ const useAuthStore = create(
           return { success: true, isNewUser: data.isNewUser, user: data.user }
         } catch (error) {
           const message = error.response?.data?.message || 'OTP verification failed'
+          set({ isLoading: false, error: message })
+          return { success: false, message }
+        }
+      },
+
+      adminLogin: async (phone, password) => {
+        set({ isLoading: true, error: null })
+        try {
+          const { data } = await api.post('/api/auth/admin-login', { phone, password })
+          localStorage.setItem('token', data.token)
+          set({
+            user: data.user,
+            token: data.token,
+            isAuthenticated: true,
+            isLoading: false
+          })
+          return { success: true, user: data.user }
+        } catch (error) {
+          const message = error.response?.data?.message || 'Admin login failed'
           set({ isLoading: false, error: message })
           return { success: false, message }
         }

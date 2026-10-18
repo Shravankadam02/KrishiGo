@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MdVerified, MdWarning, MdLogout, MdAccountBalance } from 'react-icons/md'
+import { MdVerified, MdWarning, MdLogout, MdAccountBalance, MdVerifiedUser } from 'react-icons/md'
 import { HiClipboardList } from 'react-icons/hi'
 import { FaTractor } from 'react-icons/fa'
 import OwnerLayout from '../../components/layout/OwnerLayout'
@@ -24,6 +24,12 @@ export default function OwnerProfile() {
       label: lang === 'en' ? 'My Listings' : 'माझ्या यादी',
       action: () => navigate('/owner/listings'),
       color: 'bg-[#2D6A4F]/10 text-[#2D6A4F]'
+    },
+    {
+      icon: MdVerifiedUser,
+      label: lang === 'en' ? 'KYC Verification' : 'KYC पडताळणी',
+      action: () => navigate('/owner/kyc'),
+      color: 'bg-emerald-50 text-emerald-600'
     },
     {
       icon: HiClipboardList,
@@ -57,16 +63,27 @@ export default function OwnerProfile() {
               <p className='text-white/60 text-xs mt-0.5'>
                 {user?.village}, {user?.taluka}
               </p>
-              <div className='flex items-center gap-1 mt-1.5'>
+              <div 
+                className='flex items-center gap-1 mt-1.5 cursor-pointer hover:opacity-80 transition-opacity'
+                onClick={() => navigate('/owner/kyc')}
+                title="Click to view KYC status"
+              >
                 {user?.kyc?.status === 'approved' ? (
                   <>
                     <MdVerified size={14} className='text-[#95D5B2]' />
                     <span className='text-[#95D5B2] text-xs font-semibold'>KYC Verified</span>
                   </>
+                ) : user?.kyc?.status === 'rejected' ? (
+                  <>
+                    <MdWarning size={14} className='text-red-400' />
+                    <span className='text-red-400 text-xs font-semibold'>KYC Rejected - Resubmit</span>
+                  </>
                 ) : (
                   <>
                     <MdWarning size={14} className='text-amber-400' />
-                    <span className='text-amber-400 text-xs font-semibold'>KYC Pending</span>
+                    <span className='text-amber-400 text-xs font-semibold'>
+                      {user?.kyc?.status === 'pending' ? 'KYC Under Review' : 'Complete KYC'}
+                    </span>
                   </>
                 )}
               </div>

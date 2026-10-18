@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import razorpay from '../config/razorpay.js'
 import Booking from '../models/Booking.js'
 import User from '../models/User.js'
+import { sendTransactionalSMS } from '../utils/sms.js'
 
 // POST /api/payments/create-order
 // Called when farmer wants to pay advance or full amount
@@ -18,6 +19,10 @@ export const createOrder = async (req, res) => {
 
     if (booking.farmer.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Access denied' })
+    }
+
+    if (['cancelled_farmer', 'cancelled_owner', 'cancelled_weather', 'expired', 'completed'].includes(booking.status)) {
+      return res.status(400).json({ success: false, message: `Cannot create order for booking in ${booking.status} status` })
     }
 
     let amount
@@ -57,7 +62,7 @@ export const createOrder = async (req, res) => {
     }
 
     const order = await razorpay.orders.create({
-      amount: amount * 100,
+      amount: Math.round(amount * 100),
       currency: 'INR',
       receipt: `booking_${bookingId}_${paymentType}`,
       notes: {
@@ -66,6 +71,13 @@ export const createOrder = async (req, res) => {
         farmerId: req.user._id.toString()
       }
     })
+
+    if (paymentType === 'advance') {
+      booking.advance.razorpayOrderId = order.id
+    } else {
+      booking.payment.razorpayOrderId = order.id
+    }
+    await booking.save()
 
     res.json({
       success: true,
@@ -100,60 +112,75 @@ export const verifyPayment = async (req, res) => {
     } = req.body
 
     // Verify signature
-    const body = razorpay_order_id + '|' + razorpay_payment_id
+    const bodyStr = razorpay_order_id + '|' + razorpay_payment_id
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(body)
+      .update(bodyStr)
       .digest('hex')
 
-    if (expectedSignature !== razorpay_signature) {
+    if (!crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(razorpay_signature))) {
       return res.status(400).json({
         success: false,
         message: 'Payment verification failed. Invalid signature.'
       })
     }
 
-    // Signature valid — update booking
     const booking = await Booking.findById(bookingId)
 
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' })
     }
 
+    if (booking.farmer.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Access denied' })
+    }
+
+    const expectedOrderId = paymentType === 'advance' ? booking.advance.razorpayOrderId : booking.payment.razorpayOrderId
+    if (razorpay_order_id !== expectedOrderId) {
+      return res.status(400).json({ success: false, message: 'Order ID mismatch' })
+    }
+
+    const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id)
+    if (paymentDetails.status !== 'captured' && paymentDetails.status !== 'authorized') {
+      return res.status(400).json({ success: false, message: 'Payment not captured or authorized' })
+    }
+    if (paymentDetails.order_id !== razorpay_order_id) {
+      return res.status(400).json({ success: false, message: 'Payment order ID mismatch' })
+    }
+    
+    let expectedAmount = paymentType === 'advance' ? booking.advance.amount : (paymentType === 'full' ? booking.totalPrice : booking.totalPrice - booking.advance.amount)
+    if (paymentDetails.amount !== Math.round(expectedAmount * 100)) {
+      return res.status(400).json({ success: false, message: 'Payment amount mismatch' })
+    }
+
     if (paymentType === 'advance') {
+      if (booking.advance.collected) {
+        return res.json({ success: true, message: 'Advance already verified' })
+      }
       await Booking.findByIdAndUpdate(bookingId, {
         'advance.collected': true,
-        'advance.razorpayOrderId': razorpay_order_id,
         'advance.razorpayPaymentId': razorpay_payment_id
       })
-
-      return res.json({
-        success: true,
-        message: 'Advance payment verified successfully'
+      
+      const owner = await User.findById(booking.owner)
+      await sendTransactionalSMS(owner.phone, 'advance_paid', {
+        amount: expectedAmount,
+        bookingId: booking._id.toString()
       })
+      
+      return res.json({ success: true, message: 'Advance payment verified successfully' })
     }
 
     if (paymentType === 'full' || paymentType === 'remaining') {
+      if (booking.paymentStatus === 'collected') {
+        return res.json({ success: true, message: 'Payment already verified' })
+      }
       await Booking.findByIdAndUpdate(bookingId, {
         paymentStatus: 'collected',
         paymentConfirmedAt: new Date(),
-        status: 'completed',
-        'payment.razorpayOrderId': razorpay_order_id,
         'payment.razorpayPaymentId': razorpay_payment_id
       })
-
-      // Update user stats
-      await User.findByIdAndUpdate(booking.farmer, {
-        $inc: { totalBookings: 1, completedBookings: 1 }
-      })
-      await User.findByIdAndUpdate(booking.owner, {
-        $inc: { totalBookings: 1, completedBookings: 1 }
-      })
-
-      return res.json({
-        success: true,
-        message: 'Payment verified. Booking completed.'
-      })
+      return res.json({ success: true, message: 'Payment verified successfully.' })
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
@@ -167,26 +194,44 @@ export const handleWebhook = async (req, res) => {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
     const signature = req.headers['x-razorpay-signature']
 
-    // Verify webhook signature
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
-      .update(JSON.stringify(req.body))
+      .update(req.body)
       .digest('hex')
 
-    if (signature !== expectedSignature) {
+    if (!crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature))) {
       return res.status(400).json({ success: false, message: 'Invalid webhook signature' })
     }
 
-    const event = req.body.event
-    const payment = req.body.payload.payment?.entity
+    const payload = JSON.parse(req.body.toString())
+    const event = payload.event
+    const payment = payload.payload.payment?.entity
 
     if (event === 'payment.failed') {
-      // Log failed payment — can notify farmer
       console.log(`Payment failed for order: ${payment.order_id}`)
     }
 
     if (event === 'payment.captured') {
-      console.log(`Payment captured: ${payment.id}`)
+      const orderId = payment.order_id
+      const booking = await Booking.findOne({
+        $or: [
+          { 'advance.razorpayOrderId': orderId },
+          { 'payment.razorpayOrderId': orderId }
+        ]
+      })
+
+      if (booking) {
+        if (booking.advance.razorpayOrderId === orderId && !booking.advance.collected) {
+          booking.advance.collected = true
+          booking.advance.razorpayPaymentId = payment.id
+          await booking.save()
+        } else if (booking.payment.razorpayOrderId === orderId && booking.paymentStatus !== 'collected') {
+          booking.paymentStatus = 'collected'
+          booking.paymentConfirmedAt = new Date()
+          booking.payment.razorpayPaymentId = payment.id
+          await booking.save()
+        }
+      }
     }
 
     res.json({ success: true })

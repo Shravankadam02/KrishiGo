@@ -3,6 +3,7 @@ import Equipment from '../models/Equipment.js'
 import Booking from '../models/Booking.js'
 import Dispute from '../models/Dispute.js'
 import Payout from '../models/Payout.js'
+import { decrypt } from '../utils/crypto.js'
 
 // GET /api/admin/dashboard
 export const getDashboard = async (req, res) => {
@@ -254,12 +255,20 @@ export const getPayouts = async (req, res) => {
       Payout.countDocuments(query)
     ])
 
+    const payoutsWithDecryptedBank = payouts.map(p => {
+      const obj = p.toObject()
+      if (obj.owner?.bankAccount?.accountNumber) {
+        obj.owner.bankAccount.accountNumber = decrypt(obj.owner.bankAccount.accountNumber)
+      }
+      return obj
+    })
+
     res.json({
       success: true,
       total,
       page: Number(page),
       pages: Math.ceil(total / Number(limit)),
-      payouts
+      payouts: payoutsWithDecryptedBank
     })
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })

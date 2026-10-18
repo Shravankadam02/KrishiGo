@@ -45,7 +45,7 @@ export default function Login() {
 
     if (result.success) {
       navigate("/verify-otp", {
-        state: { phone },
+        state: { phone, demoMode: result.demoMode },
       });
     }
   };

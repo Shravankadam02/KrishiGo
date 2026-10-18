@@ -23,18 +23,18 @@ export default function BottomNav() {
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className='flex flex-col items-center gap-1 py-3 px-4 relative min-w-[60px]'
+              className='flex flex-col items-center gap-0.5 py-2.5 px-1 relative flex-1 min-w-0'
             >
               {isActive && (
-                <div className='absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#2D6A4F] rounded-full' />
+                <div className='absolute top-0 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#2D6A4F] rounded-full' />
               )}
               <tab.icon
-                size={22}
-                className={`transition-colors ${
+                size={20}
+                className={`transition-colors shrink-0 ${
                   isActive ? 'text-[#2D6A4F]' : 'text-neutral-400'
                 }`}
               />
-              <span className={`text-xs font-semibold transition-colors ${
+              <span className={`text-[11px] font-semibold transition-colors truncate max-w-full ${
                 isActive ? 'text-[#2D6A4F]' : 'text-neutral-400'
               }`}>
                 {tab.label}

@@ -180,7 +180,7 @@ export const searchEquipment = async (req, res) => {
 export const getEquipmentById = async (req, res) => {
   try {
     const equipment = await Equipment.findById(req.params.id)
-      .populate('owner', 'name village taluka rating ratingCount trustScore phone')
+      .populate('owner', 'name village taluka rating ratingCount trustScore')
 
     if (!equipment) {
       return res.status(404).json({ success: false, message: 'Equipment not found' })
@@ -226,11 +226,36 @@ export const updateEquipment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Equipment not found' })
     }
 
-    // Price change resets to pending for re-verification
-    const needsReview = req.body.pricePerAcre &&
-      Number(req.body.pricePerAcre) !== equipment.pricePerAcre
+    const { pricePerAcre, pricePerHour, serviceRadius, attachments, specs, village, taluka } = req.body
 
-    const updateData = { ...req.body }
+    const updateData = {}
+    
+    if (pricePerAcre !== undefined) {
+      const p = Number(pricePerAcre)
+      if (p <= 0) return res.status(400).json({ success: false, message: 'Price must be greater than 0' })
+      updateData.pricePerAcre = p
+    }
+    
+    if (pricePerHour !== undefined) {
+      const p = Number(pricePerHour)
+      if (p <= 0) return res.status(400).json({ success: false, message: 'Price must be greater than 0' })
+      updateData.pricePerHour = p
+    }
+
+    if (serviceRadius !== undefined) {
+      const r = Number(serviceRadius)
+      if (r < 5 || r > 20) return res.status(400).json({ success: false, message: 'Radius must be between 5 and 20 km' })
+      updateData.serviceRadius = r
+    }
+
+    if (attachments !== undefined) updateData.attachments = attachments
+    if (specs !== undefined) updateData.specs = specs
+    if (village !== undefined) updateData.village = village
+    if (taluka !== undefined) updateData.taluka = taluka
+
+    // Price change resets to pending for re-verification
+    const needsReview = updateData.pricePerAcre !== undefined && updateData.pricePerAcre !== equipment.pricePerAcre
+
     if (needsReview) {
       updateData.status = 'pending'
     }

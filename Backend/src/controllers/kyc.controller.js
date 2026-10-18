@@ -1,5 +1,6 @@
 import User from '../models/User.js'
-import { uploadFile } from '../config/cloudinary.js'
+import cloudinary, { uploadPrivate } from '../config/cloudinary.js'
+import { encrypt } from '../utils/crypto.js'
 
 // POST /api/kyc/submit
 export const submitKYC = async (req, res) => {
@@ -33,12 +34,12 @@ export const submitKYC = async (req, res) => {
       })
     }
 
-    // Upload to Cloudinary
-    const aadhaarUrl = await uploadFile(
+    // Upload to Cloudinary using private upload
+    const aadhaarUrl = await uploadPrivate(
       req.files.aadhaar[0].buffer,
       'kyc/aadhaar'
     )
-    const panUrl = await uploadFile(
+    const panUrl = await uploadPrivate(
       req.files.pan[0].buffer,
       'kyc/pan'
     )
@@ -48,13 +49,14 @@ export const submitKYC = async (req, res) => {
       aadhaarUrl,
       panUrl,
       bankAccount: {
-        accountNumber,
+        accountNumber: encrypt(accountNumber),
         ifscCode,
         accountName,
         verified: false
       },
       'kyc.status': 'pending',
-      'kyc.submittedAt': new Date()
+      'kyc.submittedAt': new Date(),
+      'kyc.rejectionReason': ''
     })
 
     res.json({
@@ -108,6 +110,11 @@ export const getKYCStatus = async (req, res) => {
         verifiedAt: user.kyc.verifiedAt,
         rejectionReason: user.kyc.rejectionReason
       },
+      bankAccount: user.bankAccount ? {
+        accountName: user.bankAccount.accountName,
+        ifscCode: user.bankAccount.ifscCode,
+        verified: user.bankAccount.verified
+      } : null,
       steps
     })
   } catch (error) {
@@ -167,7 +174,20 @@ export const getKYCQueue = async (req, res) => {
       .select('name phone village taluka aadhaarUrl panUrl bankAccount kyc createdAt')
       .sort({ 'kyc.submittedAt': 1 }) // oldest first
 
-    res.json({ success: true, count: queue.length, queue })
+    const expiresAt = Math.floor(Date.now() / 1000) + 600 // 10 mins
+
+    const queueWithSignedUrls = queue.map(u => {
+      const obj = u.toObject()
+      if (obj.aadhaarUrl && !obj.aadhaarUrl.startsWith('http')) {
+        obj.aadhaarUrl = cloudinary.url(obj.aadhaarUrl, { sign_url: true, type: 'authenticated', expires_at: expiresAt })
+      }
+      if (obj.panUrl && !obj.panUrl.startsWith('http')) {
+        obj.panUrl = cloudinary.url(obj.panUrl, { sign_url: true, type: 'authenticated', expires_at: expiresAt })
+      }
+      return obj
+    })
+
+    res.json({ success: true, count: queueWithSignedUrls.length, queue: queueWithSignedUrls })
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
   }

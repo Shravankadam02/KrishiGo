@@ -25,6 +25,22 @@ export const uploadFile = async (fileBuffer, folder, resourceType = 'auto') => {
   })
 }
 
+export const uploadPrivate = async (fileBuffer, folder, resourceType = 'auto') => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: `krishigo/${folder}`,
+        resource_type: resourceType
+      },
+      (error, result) => {
+        if (error) reject(error)
+        else resolve(result.secure_url)
+      }
+    )
+    stream.end(fileBuffer)
+  })
+}
+
 export const deleteFile = async (publicId) => {
   return cloudinary.uploader.destroy(publicId)
 }

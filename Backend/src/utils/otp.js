@@ -1,6 +1,10 @@
-// Phase 1: Mock OTP — replace with MSG91 in production
+import crypto from 'crypto'
+
 export const generateOTP = () => {
-  return "123456" // Hardcoded for demo MVP
+  if (process.env.DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production') {
+    return '123456'
+  }
+  return crypto.randomInt(100000, 1000000).toString()
 }
 
 export const sendOTP = async (phone, otp) => {

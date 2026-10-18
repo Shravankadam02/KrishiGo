@@ -57,8 +57,8 @@ export default function VerifyOtp() {
     }
   };
 
-  const handleVerify = async () => {
-    const otpValue = otp.join("");
+  const handleVerify = async (customOtp) => {
+    const otpValue = typeof customOtp === "string" ? customOtp : otp.join("");
     if (otpValue.length !== 6) return;
 
     const result = await verifyOtp(phone, otpValue);
@@ -123,12 +123,30 @@ export default function VerifyOtp() {
               <span className="font-bold text-neutral-700">+91 {phone}</span>
             </p>
 
-            <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-3">
-              <p className="text-sm text-yellow-800">
-                ⚠️ <strong>Testing Only:</strong> Enter <code>123456</code> as
-                the OTP.
-              </p>
-            </div>
+            {(location.state?.demoMode || import.meta.env.VITE_DEMO_MODE === "true") && (
+              <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-3.5 flex items-center justify-between gap-3 shadow-xs">
+                <div>
+                  <p className="text-xs text-amber-900 font-bold">
+                    Demo Mode Active
+                  </p>
+                  <p className="text-xs text-amber-800 mt-0.5">
+                    Use OTP: <code className="bg-amber-200/70 font-mono font-bold px-1.5 py-0.5 rounded text-amber-950">123456</code>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const demoDigits = ["1", "2", "3", "4", "5", "6"];
+                    setOtp(demoDigits);
+                    clearError();
+                    handleVerify(demoDigits.join(""));
+                  }}
+                  className="px-3 py-1.5 bg-[#2D6A4F] hover:bg-[#1B4332] text-white text-xs font-bold rounded-xl shrink-0 transition-colors shadow-sm"
+                >
+                  Auto-fill 123456
+                </button>
+              </div>
+            )}
           </div>
 
           {/* OTP inputs */}

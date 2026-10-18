@@ -9,6 +9,7 @@ import {
   calculateCancellationPenalty,
   toAcres
 } from '../utils/booking.js'
+import { sendTransactionalSMS } from '../utils/sms.js'
 
 // POST /api/bookings — farmer creates booking
 export const createBooking = async (req, res) => {
@@ -20,6 +21,10 @@ export const createBooking = async (req, res) => {
         success: false,
         message: 'Equipment, service date and land size are required'
       })
+    }
+
+    if (Number(landSize) <= 0) {
+      return res.status(400).json({ success: false, message: 'Land size must be a positive number' })
     }
 
     // Check profile complete
@@ -37,8 +42,22 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Equipment not available' })
     }
 
-    // Check date availability
-    const bookingDate = new Date(serviceDate)
+    // Normalize to start of day in IST (UTC+5:30)
+    let bookingDate = new Date(serviceDate)
+    bookingDate.setUTCHours(0, 0, 0, 0)
+    // Actually, to align strictly to IST start of day, we need to subtract the 5h30m offset from midnight UTC or manipulate it properly.
+    // The prompt says: Normalize serviceDate to the start of the day (in IST)
+    // A simple way is to parse the local date string "YYYY-MM-DD" as a UTC date and just assume it represents the start of the day. 
+    // Or we can shift by 5.5 hours. Since it's saved in DB as UTC, if we just do `new Date(serviceDate + 'T00:00:00+05:30')` it works.
+    
+    // Let's use the Date constructor properly
+    const dateStr = bookingDate.toISOString().split('T')[0] // Get YYYY-MM-DD
+    bookingDate = new Date(`${dateStr}T00:00:00+05:30`)
+
+    if (bookingDate < new Date(new Date().setUTCHours(0,0,0,0))) {
+      return res.status(400).json({ success: false, message: 'Service date cannot be in the past' })
+    }
+
     const isBlocked = equipment.availabilityCalendar.find(entry =>
       new Date(entry.date).toDateString() === bookingDate.toDateString() &&
       entry.available === false
@@ -48,20 +67,6 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Equipment not available on this date'
-      })
-    }
-
-    // Check no duplicate booking on same date
-    const existingBooking = await Booking.findOne({
-      equipment: equipmentId,
-      serviceDate: bookingDate,
-      status: { $in: ['pending', 'confirmed', 'in_progress'] }
-    })
-
-    if (existingBooking) {
-      return res.status(400).json({
-        success: false,
-        message: 'Equipment already booked on this date'
       })
     }
 
@@ -103,6 +108,12 @@ export const createBooking = async (req, res) => {
       { path: 'owner', select: 'name phone village' }
     ])
 
+    await sendTransactionalSMS(booking.owner.phone, 'new_booking', {
+      farmerName: req.user.name || 'A farmer',
+      equipment: equipment.type,
+      date: bookingDate.toDateString()
+    })
+
     res.status(201).json({
       success: true,
       message: 'Booking request submitted',
@@ -112,6 +123,9 @@ export const createBooking = async (req, res) => {
       advanceReason: advance.reason
     })
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: 'Equipment already booked on this date' })
+    }
     res.status(500).json({ success: false, message: error.message })
   }
 }
@@ -129,7 +143,18 @@ export const getFarmerBookings = async (req, res) => {
       .populate('owner', 'name phone village')
       .sort({ createdAt: -1 })
 
-    res.json({ success: true, count: bookings.length, bookings })
+    const processed = bookings.map(b => {
+      const obj = b.toObject()
+      if (obj.status === 'pending') {
+        if (obj.owner) delete obj.owner.phone
+      }
+      if (obj.status === 'confirmed' && obj.advance?.required && !obj.advance?.collected) {
+        if (obj.owner) delete obj.owner.phone
+      }
+      return obj
+    })
+
+    res.json({ success: true, count: processed.length, bookings: processed })
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
   }
@@ -148,7 +173,15 @@ export const getOwnerBookings = async (req, res) => {
       .populate('farmer', 'name phone village landSize trustScore')
       .sort({ createdAt: -1 })
 
-    res.json({ success: true, count: bookings.length, bookings })
+    const processed = bookings.map(b => {
+      const obj = b.toObject()
+      if (obj.status === 'pending') {
+        if (obj.farmer) delete obj.farmer.phone
+      }
+      return obj
+    })
+
+    res.json({ success: true, count: processed.length, bookings: processed })
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
   }
@@ -177,7 +210,20 @@ export const getBookingById = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied' })
     }
 
-    res.json({ success: true, booking })
+    const obj = booking.toObject()
+    const isFarmerView = obj.farmer._id.toString() === userId
+    const isOwnerView = obj.owner._id.toString() === userId
+
+    if (obj.status === 'pending') {
+      if (isFarmerView && obj.owner) delete obj.owner.phone
+      if (isOwnerView && obj.farmer) delete obj.farmer.phone
+    }
+
+    if (obj.status === 'confirmed' && obj.advance?.required && !obj.advance?.collected) {
+      if (isFarmerView && obj.owner) delete obj.owner.phone
+    }
+
+    res.json({ success: true, booking: obj })
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
   }
@@ -219,6 +265,12 @@ export const acceptBooking = async (req, res) => {
     })
 
     await Booking.findByIdAndUpdate(booking._id, { status: 'confirmed' })
+
+    const farmer = await User.findById(booking.farmer)
+    await sendTransactionalSMS(farmer.phone, 'booking_accepted', {
+      equipment: booking.equipment.type || 'Equipment',
+      date: booking.serviceDate.toDateString()
+    })
 
     res.json({ success: true, message: 'Booking confirmed' })
   } catch (error) {
@@ -284,6 +336,13 @@ export const cancelBooking = async (req, res) => {
       })
     }
 
+    if (isOwner && booking.status === 'confirmed' && booking.advance?.collected) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot cancel after advance is collected. Contact support.'
+      })
+    }
+
     const cancelledBy = isFarmer ? 'farmer' : 'owner'
     const { penalty, ratingDrop } = calculateCancellationPenalty(
       booking, cancelledBy, new Date()
@@ -309,6 +368,8 @@ export const cancelBooking = async (req, res) => {
       await User.findByIdAndUpdate(userToUpdate, {
         $inc: { rating: -ratingDrop, cancellationsThisMonth: 1 }
       })
+    } else {
+      // If there is no rating drop, we should not increment cancellationsThisMonth
     }
 
     // Unblock date on equipment calendar
@@ -326,6 +387,14 @@ export const cancelBooking = async (req, res) => {
         ? `A penalty of ₹${penalty} applies for late cancellation`
         : 'No penalty applied'
     })
+
+    // Notify victim
+    const victimUser = isFarmer ? await User.findById(booking.owner) : await User.findById(booking.farmer)
+    await sendTransactionalSMS(victimUser.phone, 'booking_cancelled', {
+      by: isFarmer ? 'Farmer' : 'Owner',
+      date: booking.serviceDate.toDateString()
+    })
+
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
   }
@@ -345,6 +414,17 @@ export const completeBooking = async (req, res) => {
         success: false,
         message: 'Booking not found or not in confirmed state'
       })
+    }
+
+    if (booking.paymentStatus === 'collected') {
+      await Booking.findByIdAndUpdate(booking._id, {
+        status: 'completed',
+        completedAt: new Date()
+      })
+      await Equipment.findByIdAndUpdate(booking.equipment, { $inc: { totalBookings: 1 } })
+      await User.findByIdAndUpdate(booking.farmer, { $inc: { totalBookings: 1, completedBookings: 1 } })
+      await User.findByIdAndUpdate(booking.owner, { $inc: { totalBookings: 1, completedBookings: 1 } })
+      return res.json({ success: true, message: 'Job and payment completed.' })
     }
 
     await Booking.findByIdAndUpdate(booking._id, {
@@ -404,11 +484,8 @@ export const submitRating = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
 
-    if (!booking || booking.status !== 'completed') {
-      return res.status(400).json({
-        success: false,
-        message: 'Can only rate completed bookings'
-      })
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' })
     }
 
     const userId = req.user._id.toString()
@@ -417,6 +494,23 @@ export const submitRating = async (req, res) => {
 
     if (!isFarmer && !isOwner) {
       return res.status(403).json({ success: false, message: 'Access denied' })
+    }
+
+    // Determine if rating is allowed based on status and who cancelled
+    let canRate = false
+    if (booking.status === 'completed') {
+      canRate = true
+    } else if (booking.status === 'cancelled_farmer' && isOwner) {
+      canRate = true
+    } else if (booking.status === 'cancelled_owner' && isFarmer) {
+      canRate = true
+    }
+
+    if (!canRate) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot rate this booking. Only completed bookings or victims of a cancellation can rate.'
+      })
     }
 
     const { overall, comment, ...dimensions } = req.body
