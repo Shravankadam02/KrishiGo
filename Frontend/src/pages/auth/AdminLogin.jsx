@@ -23,6 +23,28 @@ export default function AdminLogin() {
           <h2 className="text-center text-3xl font-extrabold text-gray-900">
             Admin Login
           </h2>
+          <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3.5 flex items-center justify-between gap-3 text-left">
+            <div>
+              <p className="text-xs text-amber-900 font-bold">
+                Demo Mode Active
+              </p>
+              <p className="text-xs text-amber-800 mt-0.5">
+                Phone: <code className="bg-amber-200/70 font-mono font-bold px-1 rounded text-amber-950">8483937455</code>
+                <br />
+                OTP / Pass: <code className="bg-amber-200/70 font-mono font-bold px-1 rounded text-amber-950">123456</code>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPhone("8483937455");
+                setPassword("123456");
+              }}
+              className="px-3 py-1.5 bg-[#2D6A4F] hover:bg-[#1B4332] text-white text-xs font-bold rounded-lg shrink-0 transition-colors shadow-sm"
+            >
+              Auto-fill
+            </button>
+          </div>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
@@ -32,7 +54,7 @@ export default function AdminLogin() {
                 type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="Admin Phone"
+                placeholder="Admin Phone (8483937455)"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
@@ -43,7 +65,7 @@ export default function AdminLogin() {
                 type="password"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="Password"
+                placeholder="Password or Demo OTP (123456)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
